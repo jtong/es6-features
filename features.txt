@@ -1,6 +1,6 @@
 ##
 ##  es6-features -- ECMAScript 6 Feature Overview & Comparison
-##  Copyright (c) 2015 Ralf S. Engelschall <rse@engelschall.com>
+##  Copyright (c) 2015-2016 Ralf S. Engelschall <rse@engelschall.com>
 ##
 ##  Permission is hereby granted, free of charge, to any person obtaining
 ##  a copy of this software and associated documentation files (the
@@ -29,7 +29,11 @@ Constants
 Constants
 ---------
 
-Support for constants (immutable variables).
+Support for constants (also known as "immutable variables"), i.e.,
+variables which cannot be re-assigned new content. Notice: this only
+makes the variable itself immutable, not its assigned content (for
+instance, in case the content is an object, this means the object itself
+can still be altered).
 
 6| |const PI| = 3.141593;
 6| PI > 3.0;
@@ -75,7 +79,7 @@ Block-scoped variables (and constants) without hoisting.
 5|     x = a[i];
 5|     ...
 5| }
-5| for (i = 0; i < b.length; i++)
+5| for (i = 0; i < b.length; i++) {
 5|     y = b[i];
 5|     ...
 5| }
@@ -231,32 +235,34 @@ a string) into both literal elements and individual function parameters.
 5| var str = "foo";
 5| var chars = str.split(""); // [ "f", "o", "o" ]
 
-Template Strings
-================
+Template Literals
+=================
 
 String Interpolation
 --------------------
 
 Intuitive expression interpolation for single-line and multi-line strings.
+(Notice: don't be confused, Template Literals were originally named
+"Template Strings" in the drafts of the ECMAScript 6 language specification)
 
 6| var customer = { name: "Foo" };
 6| var card = { amount: 7, product: "Bar", unitprice: 42 };
-6| message = `Hello |${customer.name}|,
+6| message = |`|Hello |${customer.name}|,
 6| want to buy |${card.amount} ${card.product}| for
-6| a total of |${card.amount * card.unitprice}| bucks?`;
+6| a total of |${card.amount * card.unitprice}| bucks?|`|;
 
 5| var customer = { name: "Foo" };
 5| var card = { amount: 7, product: "Bar", unitprice: 42 };
-5| message = "Hello "| + customer.name + |",\n" +
+5| message = |"|Hello "| + customer.name + |",\n" +
 5| "want to buy "| + card.amount + |" "| + card.product + |" for\n" +
-5| "a total of "| + (card.amount * card.unitprice) + |" bucks?";
+5| "a total of "| + (card.amount * card.unitprice) + |" bucks?|"|;
 
 Custom Interpolation
 --------------------
 
 Flexible expression interpolation for arbitrary methods.
 
-6| get`http://example.com/foo?bar=|${|bar + baz|}|&quux=|${|quux|}|`;
+6| get|`|http://example.com/foo?bar=|${|bar + baz|}|&quux=|${|quux|}`|;
 
 5| get|([ |"http://example.com/foo?bar="|,| "&quux="|,| ""| ],|bar + baz|,| quux|)|;
 
@@ -272,9 +278,9 @@ Access the raw template string content (backslashes are not interpreted).
 6|     strings.raw[1] === "bar";
 6|     values[0] === 42;
 6| }
-6| quux `foo|\n|${ 42 }bar`
+6| quux |`|foo|\n|${ 42 }bar|`|
 6|
-6| String.raw `foo|\n|${ 42 }bar` === "foo|\\n|42bar";
+6| String.raw |`|foo|\n|${ 42 }bar|`| === "foo|\\n|42bar";
 
 5| //  no equivalent in ES5
 
@@ -301,13 +307,15 @@ Extended support using Unicode within strings and regular expressions.
 
 6| "𠮷".length === 2;
 6| "𠮷".match(/./|u|)[0].length === 2;
-6| "|\u{20BB7}|" === "𠮷" === "\uD842\uDFB7";
+5| "𠮷" === "\uD842\uDFB7";
+6| "𠮷" === "|\u{20BB7}|";
 6| "𠮷".|codePointAt|(0) == 0x20BB7;
 6| for (let codepoint |of| "𠮷") console.log(codepoint);
 
 5| "𠮷".length === 2;
 5| "𠮷".match(/(?:[\0-\t\x0B\f\x0E-\u2027\u202A-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF])/)[0].length === 2;
 5| "𠮷" === "\uD842\uDFB7";
+5| //  no equivalent in ES5
 5| //  no equivalent in ES5
 5| //  no equivalent in ES5
 
@@ -386,15 +394,15 @@ Computed Property Names
 
 Support for computed names in object property definitions.
 
-6| obj = {
+6| let obj = {
 6|     foo: "bar",
-6|     |[| "prop_" + foo() |]:| 42
+6|     |[| "baz" + quux() |]:| 42
 6| };
 
-5| obj = {
+5| var obj = {
 5|     foo: "bar"
 5| };
-5| |obj[| "prop_" + foo() |] =| 42;
+5| |obj[| "baz" + quux() |] =| 42;
 
 Method Properties
 -----------------
@@ -422,6 +430,7 @@ for both regular functions and generator functions.
 5|         ...
 5|     },
 5|     //  quux: no equivalent in ES5
+5|     ...
 5| };
 
 
@@ -528,10 +537,10 @@ Fail-soft destructuring, optionally with defaults.
 Modules
 =======
 
-Symbol Export/Import
---------------------
+Value Export/Import
+-------------------
 
-Support for exporting/importing symbols from/to modules without global namespace pollution.
+Support for exporting/importing values from/to modules without global namespace pollution.
 
 6| //  lib/math.js
 6| |export| function |sum| (x, y) { return x + y };
@@ -561,7 +570,7 @@ Support for exporting/importing symbols from/to modules without global namespace
 Default & Wildcard
 ------------------
 
-Marking a symbol as the default exported symbol and mass-mixin of symbols.
+Marking a value as the default exported value and mass-mixin of values.
 
 6| //  lib/mathplusplus.js
 6| |export *| from "lib/math";
@@ -581,7 +590,7 @@ Marking a symbol as the default exported symbol and mass-mixin of symbols.
 5| |LibMathPP.exp| = function (x) { return Math.exp(x) };
 5|
 5| //  someApp.js
-5| var |exp = LibMathPP.exp|, |pi = LibMathPP.pi|, |e = libMathPP.e|;
+5| var |exp = LibMathPP.exp|, |pi = LibMathPP.pi|, |e = LibMathPP.e|;
 5| console.log("e^{π} = " + exp(pi));
 
 
@@ -962,7 +971,7 @@ convenient `of` operator to iterate over all values of an iterable object.
 6| }
 
 5| var fibonacci = {
-5|     |next:| ((function () {
+5|     |next:| (function () {
 5|         var pre = 0, cur = 1;
 5|         return function () {
 5|             tmp = pre;
@@ -970,7 +979,7 @@ convenient `of` operator to iterate over all values of an iterable object.
 5|             cur += tmp;
 5|             return cur;
 5|         };
-5|     })();
+5|     })()
 5| };
 5|
 5| var n;
@@ -1008,7 +1017,7 @@ order to produce sequence of values (either finite or infinite).
 6| }
 
 5| var fibonacci = {
-5|     next: ((|function| () {
+5|     next: (|function| () {
 5|         var pre = 0, cur = 1;
 5|         return function () {
 5|             tmp = pre;
@@ -1016,7 +1025,7 @@ order to produce sequence of values (either finite or infinite).
 5|             cur += tmp;
 5|             return cur;
 5|         };
-5|     })();
+5|     })()
 5| };
 5|
 5| var n;
@@ -1142,6 +1151,24 @@ and given here just for better understanding. See
 
 5| //  no equivalent in ES5
 
+Generator Methods
+-----------------
+
+Support for generator methods, i.e., methods in classes and on objects,
+based on generator functions.
+
+6| class Clz {
+6|     |* bar ()| {
+6|         ...
+6|     }
+6| };
+6| let Obj = {
+6|     |* foo ()| {
+6|         ...
+6|     }
+6| };
+
+5| //  no equivalent in ES5
 
 # Comprehensions
 # ==============
@@ -1326,7 +1353,7 @@ objects onto a destination object.
 5| Object|.keys(src1).forEach|(function(k) {
 5|     |dst[k] = src1[k]|;
 5| });
-5| Object|.keys(src2).forEach|(function(e) {
+5| Object|.keys(src2).forEach|(function(k) {
 5|     |dst[k] = src2[k]|;
 5| });
 5| dst.quux === 0;
@@ -1483,7 +1510,7 @@ First class representation of a value that may be made asynchronously and be ava
 6|     });
 6| }
 6| msgAfterTimeout("", "Foo", 100).|then|((msg) =>
-6|     msgAfterTimeout(msg, "Bar", 200);
+6|     msgAfterTimeout(msg, "Bar", 200)
 6| ).|then|((msg) => {
 6|     console.log(`done after 300ms:${msg}`);
 6| });
@@ -1587,4 +1614,64 @@ Make calls corresponding to the object meta-operations.
 5| Object.defineProperty(obj, "b", { value: 2 });
 5| // no equivalent in ES5
 5| |Object.getOwnPropertyNames|(obj); // [ "a", "b" ]
+
+
+Internationalization & Localization
+===================================
+
+Collation
+---------
+
+Sorting a set of strings and searching within a set of strings.
+Collation is parameterized by locale and aware of Unicode.
+
+6| // in German,  "ä" sorts with "a"
+6| // in Swedish, "ä" sorts after "z"
+6| var list = [ |"ä"|, "a", "z" ];
+6| var l10nDE = new Intl.Collator(|"de"|);
+6| var l10nSV = new Intl.Collator(|"sv"|);
+6| l10nDE.compare("ä", "z") === |-1|;
+6| l10nSV.compare("ä", "z") === |+1|;
+6| console.log(list.sort(l10nDE.compare)); // [ "a", |"ä"|, "z" ]
+6| console.log(list.sort(l10nSV.compare)); // [ "a", "z", |"ä"| ]
+
+5| // no equivalent in ES5
+
+Number Formatting
+-----------------
+
+Format numbers with digit grouping and localized separators.
+
+6| var l10nEN = new Intl.NumberFormat(|"en-US"|);
+6| var l10nDE = new Intl.NumberFormat(|"de-DE"|);
+6| l10nEN.format(1234567.89) === |"1,234,567.89"|;
+6| l10nDE.format(1234567.89) === |"1.234.567,89"|;
+
+5| // no equivalent in ES5
+
+Currency Formatting
+-------------------
+
+Format numbers with digit grouping, localized separators and attached currency symbol.
+
+6| var l10nUSD = new Intl.NumberFormat("en-US", { style: "currency", currency: |"USD"| });
+6| var l10nGBP = new Intl.NumberFormat("en-GB", { style: "currency", currency: |"GBP"| });
+6| var l10nEUR = new Intl.NumberFormat("de-DE", { style: "currency", currency: |"EUR"| });
+6| l10nUSD.format(100200300.40) === |"$100,200,300.40"|;
+6| l10nGBP.format(100200300.40) === |"£100,200,300.40"|;
+6| l10nEUR.format(100200300.40) === |"100.200.300,40 €"|;
+
+5| // no equivalent in ES5
+
+Date/Time Formatting
+--------------------
+
+Format date/time with localized ordering and separators.
+
+6| var l10nEN = new Intl.DateTimeFormat(|"en-US"|);
+6| var l10nDE = new Intl.DateTimeFormat(|"de-DE"|);
+6| l10nEN.format(new Date("2015-01-02")) === |"1/2/2015"|;
+6| l10nDE.format(new Date("2015-01-02")) === |"2.1.2015"|;
+
+5| // no equivalent in ES5
 

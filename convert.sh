@@ -1,7 +1,7 @@
 #!/bin/sh
 ##
 ##  es6-features -- ECMAScript 6 Feature Overview & Comparison
-##  Copyright (c) 2015 Ralf S. Engelschall <rse@engelschall.com>
+##  Copyright (c) 2015-2016 Ralf S. Engelschall <rse@engelschall.com>
 ##
 ##  Permission is hereby granted, free of charge, to any person obtaining
 ##  a copy of this software and associated documentation files (the
@@ -23,5 +23,5 @@
 ##  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ##
 
-exec ./node_modules/.bin/babel-node convert.js
+exec ./node_modules/.bin/babel-node --presets es2015 convert.js
 
